@@ -1,4 +1,15 @@
+
 <div class="page">
   <div class="header">Angular sample</div>
+  <aside></aside>
+  <nav>
+    <ul>
+      <li [class.active]="isBasicActive"><a (click)="basicAnnotation()">Basic PDF Annotations</a></li>
+      <li [class.active]="isCustomActive"><a (click)="customAnnotation()">Customized Annotation Toolbar</a></li>
+      <li [class.active]="isImportActive"><a (click)="importAnnotation()">Import PDf Annotation - layer</a></li>
+    </ul>
+  </nav>
+
   <div #viewer class="viewer"></div>
+
 </div>

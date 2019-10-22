@@ -53,10 +53,20 @@ export class AppComponent implements OnInit, AfterViewInit {
   WebViewer({
       path: '../lib',
       initialDoc: '../files/combinepdf.pdf',
-      css: './app.component.css'
+      css: '../files/styles.css'
     }, this.viewer.nativeElement).then(instance => {
-      // this.viewerInstance = instance;
       this.wvInstance = instance;
+
+      // instance.setTheme({
+      //   primary: '#2C2B3A',
+      //   secondary: '#4D4C5F',
+      //   border: '#555555',
+      //   buttonHover: '#686880',
+      //   buttonActive: '#686880',
+      //   text: '#FFFFFF',
+      //   icon: '#FFFFFF',
+      //   iconActive: '#FFFFFF'
+      // });
 
       // now you can access APIs through this.webviewer.getInstance()
       instance.openElement('notesPanel');
@@ -84,8 +94,21 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.refreshViewer();
     WebViewer({
       path: '../lib',
-      initialDoc: '../files/combinepdf.pdf'
+      initialDoc: '../files/combinepdf.pdf',
+      css: '../files/styles.css'
     }, this.viewer.nativeElement).then((instance) => {
+
+      // instance.setTheme({
+      //   primary: '#2C2B3A',
+      //   secondary: '#4D4C5F',
+      //   border: '#555555',
+      //   buttonHover: '#686880',
+      //   buttonActive: '#686880',
+      //   text: '#FFFFFF',
+      //   icon: '#FFFFFF',
+      //   iconActive: '#FFFFFF'
+      // });
+      
       //this.viewerInstance = instance;
         var annotManager = instance.docViewer.getAnnotationManager();
         // Add tool button in header

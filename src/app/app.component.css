@@ -8,10 +8,6 @@ html, body {
   background-color: #00a4e4 !important;
 }
 
-.Button.active{
-
-}
-
 .page {
   display: flex;
   flex-direction: column;

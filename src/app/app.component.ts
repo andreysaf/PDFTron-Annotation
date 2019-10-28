@@ -1,5 +1,13 @@
-import { Component, ViewChild, OnInit, ElementRef, AfterViewInit } from '@angular/core';
-import { saveAs } from 'file-saver';
+import {
+  Component,
+  ViewChild,
+  OnInit,
+  ElementRef,
+  AfterViewInit
+} from '@angular/core';
+import {
+  saveAs
+} from 'file-saver';
 
 declare const WebViewer: any;
 
@@ -11,10 +19,10 @@ declare const WebViewer: any;
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('viewer') viewer: ElementRef;
   wvInstance: any;
-  isCustomActive:boolean = true;
-  isBasicActive:boolean = false;
+  isCustomActive: boolean = true;
+  isBasicActive: boolean = false;
   isImportActive = false;
-  viewerInstance:any;
+  viewerInstance: any;
 
   ngAfterViewInit(): void {
 
@@ -27,10 +35,12 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   wvDocumentLoadedHandler(): void {
     // you can access docViewer object for low-level APIs
-    const docViewer = this.wvInstance;
+    const docViewer = this.wvInstance.docViewer;
     const annotManager = this.wvInstance.annotManager;
     // and access classes defined in the WebViewer iframe
-    const { Annotations } = this.wvInstance;
+    const {
+      Annotations
+    } = this.wvInstance;
     const rectangle = new Annotations.RectangleAnnotation();
     rectangle.PageNumber = 1;
     rectangle.X = 100;
@@ -44,17 +54,19 @@ export class AppComponent implements OnInit, AfterViewInit {
     // see https://www.pdftron.com/api/web/WebViewer.html for the full list of low-level APIs
   }
 
-  basicAnnotation(){
-  //  document.querySelector('#customViewer') ? document.querySelector('#customViewer').innerHTML = '' : '';
-  this.isCustomActive = false;
-  this.isBasicActive = true;
-  this.isImportActive = false;
-  this.refreshViewer();
-  WebViewer({
+  basicAnnotation() {
+    console.log('Basic Called');
+    this.wvInstance.loadDocument('https://pdftron.s3.amazonaws.com/downloads/pl/webviewer-demo.pdf');
+  }
+
+  customAnnotation() {
+    //init webviewer once, after you can loadDocument for loading different comments or annots
+    WebViewer({
       path: '../lib',
       initialDoc: '../files/combinepdf.pdf',
       css: '../files/styles.css'
-    }, this.viewer.nativeElement).then(instance => {
+    }, this.viewer.nativeElement).then((instance) => {
+
       this.wvInstance = instance;
 
       // instance.setTheme({
@@ -68,77 +80,77 @@ export class AppComponent implements OnInit, AfterViewInit {
       //   iconActive: '#FFFFFF'
       // });
 
-      // now you can access APIs through this.webviewer.getInstance()
-      instance.openElement('notesPanel');
-      // see https://www.pdftron.com/documentation/web/guides/ui/apis for the full list of APIs
-
-      // or listen to events from the viewer element
-      this.viewer.nativeElement.addEventListener('pageChanged', (e) => {
-        const [ pageNumber ] = e.detail;
-        console.log(`Current page is ${pageNumber}`);
-      });
-
-      // or from the docViewer instance
-      instance.docViewer.on('annotationsLoaded', () => {
-        console.log('annotations loaded');
-      });
-
-      instance.docViewer.on('documentLoaded', this.wvDocumentLoadedHandler)
-    })
-  }
-
-  customAnnotation(){
-    this.isCustomActive = true;
-    this.isBasicActive = false;
-    this.isImportActive = false;
-    this.refreshViewer();
-    WebViewer({
-      path: '../lib',
-      initialDoc: '../files/combinepdf.pdf',
-      css: '../files/styles.css'
-    }, this.viewer.nativeElement).then((instance) => {
-
-      // instance.setTheme({
-      //   primary: '#2C2B3A',
-      //   secondary: '#4D4C5F',
-      //   border: '#555555',
-      //   buttonHover: '#686880',
-      //   buttonActive: '#686880',
-      //   text: '#FFFFFF',
-      //   icon: '#FFFFFF',
-      //   iconActive: '#FFFFFF'
-      // });
+      var nextPageButton = {
+        type: 'statefulButton',
+        initialState: 'Page',
+        states: {
+          Page: {
+            // Checkout https://www.pdftron.com/api/web/WebViewer.html to see more APIs related with viewerInstance
+            getContent: function() {
+              return instance.getCurrentPageNumber();
+            },
+            onClick: function() {
+              var currentPage = instance.getCurrentPageNumber();
+              var totalPages = instance.getPageCount();
+              var atLastPage = currentPage === totalPages;
       
-      //this.viewerInstance = instance;
-        var annotManager = instance.docViewer.getAnnotationManager();
-        // Add tool button in header
+              if (atLastPage) {
+                instance.goToFirstPage();
+              } else {
+                instance.goToNextPage();
+              }
+            }
+          }
+        },
+        mount: function(update) {
+          // Checkout https://www.pdftron.com/api/web/CoreControls.DocumentViewer.html to see more APIs and events with docViewer
+          instance.docViewer.on('pageNumberUpdated.nextPageButton', function() {
+            // We want to update this button when page number changes so it can have the correct content;
+            update();
+          });
+        },
+        unmount: function() {
+          instance.docViewer.off('pageNumberUpdated.nextPageButton')
+        },
+        dataElement: 'nextPageButton'
+      };
+
+      instance.setHeaderItems(function(header) {
+        header.push(nextPageButton)
+      });
+
+      var annotManager = instance.docViewer.getAnnotationManager();
+      // Add tool button in header
       let self = this;
-        instance.setHeaderItems(function(header) {
-          header.push({
-            type: 'actionButton',
-            img: '../../img/download.svg',
-            onClick: function(){
-              self.saveAsFile(instance);
-              alert('clicked downloaded');
-            }
-          });
-          header.push({
-            type: 'actionButton',
-            img: '../../img/import-export.svg',
-            onClick: function(){
-              var xfdfString = annotManager.exportAnnotations({ links: false, widgets: false });
-              alert('Annotation exported..');
-              console.log(xfdfString);
-            }
-          });
-          header.push({
-            type: 'actionButton',
-            img: '../../img/print.svg',
-            onClick: function(){
-              alert('clicked print');
-            }
-          });
+      instance.setHeaderItems(function (header) {
+        header.push({
+          type: 'actionButton',
+          img: '../../img/download.svg',
+          onClick: function () {
+            self.saveAsFile(instance);
+            alert('clicked downloaded');
+          }
         });
+        header.push({
+          type: 'actionButton',
+          img: '../../img/import-export.svg',
+          onClick: function () {
+            var xfdfString = annotManager.exportAnnotations({
+              links: false,
+              widgets: false
+            });
+            alert('Annotation exported..');
+            console.log(xfdfString);
+          }
+        });
+        header.push({
+          type: 'actionButton',
+          img: '../../img/print.svg',
+          onClick: function () {
+            alert('clicked print');
+          }
+        });
+      });
 
       // instance.setHeaderItems(function(header) {
       //   var items = header.getItems().slice(9, -3);
@@ -152,27 +164,29 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  saveAsFile(instance){
+  saveAsFile(instance) {
     console.log('called..')
     var docViewer = instance.docViewer;
     //docViewer.on('documentLoaded', function() {
-      var doc = docViewer.getDocument();
-      doc.setWatermark(this.watermark());
+    var doc = docViewer.getDocument();
+    doc.setWatermark(this.watermark());
 
-      var options = {
-        xfdfString: docViewer.getAnnotationManager().exportAnnotations()
-      };
+    var options = {
+      xfdfString: docViewer.getAnnotationManager().exportAnnotations()
+    };
     // docViewer.on('documentLoaded', function() {
     //   instance.downloadPdf(true);
     // });
-      doc.getFileData(options).then(function(data) {
-          var arr = new Uint8Array(data);
-          var blob = new Blob([arr], { type: 'application/pdf' });
-          // add code for handling Blob here
-          saveAs(blob, 'download.pdf');
-          console.log('downloaded..')
-        });
-   // });
+    doc.getFileData(options).then(function (data) {
+      var arr = new Uint8Array(data);
+      var blob = new Blob([arr], {
+        type: 'application/pdf'
+      });
+      // add code for handling Blob here
+      saveAs(blob, 'download.pdf');
+      console.log('downloaded..')
+    });
+    // });
   }
 
   watermark() {
@@ -199,11 +213,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
   }
 
-  importAnnotation(){
+  importAnnotation() {
     this.isCustomActive = false;
     this.isImportActive = true;
     this.isBasicActive = false;
-    this.refreshViewer();
     WebViewer({
       path: '../lib',
       initialDoc: '../files/combinepdf.pdf',
@@ -271,15 +284,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
   }
 
-  refreshViewer(){
-    this.viewer.nativeElement.addEventListener('ready', function() {
-      // if(this.viewerInstance){
-      //   this.viewerInstance.docViewer.closeDocument();
-      // }
-    });
-  }
-
-  openWin(){
-    window.open('','mywindow');
+  openWin() {
+    window.open('', 'mywindow');
   }
 }
